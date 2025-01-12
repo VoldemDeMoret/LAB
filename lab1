@@ -1,0 +1,113 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Функція для Цезарового зміщення (шифрування)
+string applyCaesarShift(const string& message, int startShift) {
+    string result;
+    for (size_t i = 0; i < message.length(); i++) {
+        if (isalpha(message[i])) {
+            int shift = (message[i] - 'A' + startShift + i) % 26;
+            // Забезпечуємо, щоб shift був завжди додатним
+            if (shift < 0) shift += 26;
+            result += char('A' + shift);
+        } else {
+            result += message[i];
+        }
+    }
+    return result;
+}
+
+// Функція для зворотного Цезарового зміщення (декодування)
+string reverseCaesarShift(const string& message, int startShift) {
+    string result;
+    for (size_t i = 0; i < message.length(); i++) {
+        if (isalpha(message[i])) {
+            int shift = (message[i] - 'A' - startShift - i);
+            // Забезпечуємо правильну обробку від'ємних зсувів
+            while (shift < 0) shift += 26;
+            result += char('A' + (shift % 26));
+        } else {
+            result += message[i];
+        }
+    }
+    return result;
+}
+
+// Функція для проходу через один ротор (шифрування)
+string applyRotor(const string& message, const string& rotor) {
+    string result;
+    for (char c : message) {
+        if (isalpha(c)) {
+            int index = c - 'A';
+            result += rotor[index];
+        } else {
+            result += c;
+        }
+    }
+    return result;
+}
+
+// Функція для проходу через ротор у зворотному напрямку (декодування)
+string reverseRotor(const string& message, const string& rotor) {
+    string result;
+    for (char c : message) {
+        if (isalpha(c)) {
+            auto pos = find(rotor.begin(), rotor.end(), c) - rotor.begin();
+            result += char('A' + pos);
+        } else {
+            result += c;
+        }
+    }
+    return result;
+}
+
+// Функція для послідовного проходу через всі ротори (шифрування)
+string passThroughRotors(const string& message, const vector<string>& rotors) {
+    string result = message;
+    for (const string& rotor : rotors) {
+        result = applyRotor(result, rotor);
+    }
+    return result;
+}
+
+// Функція для зворотного проходу через всі ротори (декодування)
+string reverseThroughRotors(const string& message, const vector<string>& rotors) {
+    string result = message;
+    for (int i = rotors.size() - 1; i >= 0; i--) {
+        result = reverseRotor(result, rotors[i]);
+    }
+    return result;
+}
+
+int main() {
+    string operation;
+    getline(cin, operation);
+
+    int pseudo_random_number;
+    cin >> pseudo_random_number;
+    cin.ignore();
+
+    vector<string> rotors(3);
+    for (int i = 0; i < 3; i++) {
+        getline(cin, rotors[i]);
+    }
+
+    string message;
+    getline(cin, message);
+
+    if (operation == "ENCODE") {
+        string shiftedMessage = applyCaesarShift(message, pseudo_random_number);
+        string encryptedMessage = passThroughRotors(shiftedMessage, rotors);
+        cout << encryptedMessage << endl;
+    } else if (operation == "DECODE") {
+        string reversedMessage = reverseThroughRotors(message, rotors);
+        string originalMessage = reverseCaesarShift(reversedMessage, pseudo_random_number);
+        cout << originalMessage << endl;
+    }
+
+    return 0;
+}
